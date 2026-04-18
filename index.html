@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스파키 속도 계산기</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #1e1e2e; color: #cdd6f4; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 480px; background: #313244; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        h2 { text-align: center; color: #f9e2af; margin-bottom: 20px; }
+        .section-title { color: #89b4fa; font-size: 1.1em; margin-bottom: 10px; border-bottom: 1px solid #45475a; padding-bottom: 5px; margin-top: 15px; }
+        .input-group { margin-bottom: 15px; }
+        .checkbox-group { background: #45475a; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .checkbox-item { margin-bottom: 10px; display: flex; align-items: center; font-size: 0.95em; }
+        .checkbox-item:last-child { margin-bottom: 0; }
+        input[type="checkbox"] { margin-right: 10px; width: 18px; height: 18px; accent-color: #cba6f7; }
+        select, input[type="number"] { width: 100%; padding: 10px; box-sizing: border-box; background: #181825; color: white; border: 1px solid #585b70; border-radius: 6px; font-size: 16px; margin-top: 5px; }
+        label { font-weight: bold; }
+        button { width: 100%; padding: 14px; margin-top: 15px; background-color: #cba6f7; color: #11111b; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
+        button:hover { background-color: #b4befe; }
+        .result { margin-top: 20px; padding: 20px; background-color: #181825; border-radius: 8px; text-align: center; border: 1px solid #a6e3a1; }
+        .highlight { color: #f38ba8; font-size: 1.8em; font-weight: bold; display: block; margin: 10px 0 5px 0; }
+        .final-speed { color: #b4befe; font-size: 0.9em; margin-bottom: 10px; }
+        .aha-speed { color: #fab387; font-size: 0.95em; margin-top: 10px; border-top: 1px dashed #585b70; padding-top: 10px; }
+        .warning-text { color: #f9e2af; font-size: 0.8em; margin-top: 10px; display: block; word-break: keep-all; }
+        .action-stats { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #585b70; color: #89dceb; font-size: 0.95em; text-align: left; }
+        .action-item { margin-top: 5px; color: #cdd6f4; display: flex; justify-content: space-between; }
+        .action-item strong { color: #a6e3a1; font-size: 1.1em; }
+        .sub-options { display: none; border-top: 1px dashed #585b70; padding-top: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>환락파티 속도 컷 계산기</h2>
+
+        <div class="input-group">
+            <label for="supportChar" style="color: #f38ba8;">파티 힐러 구성</label>
+            <select id="supportChar" onchange="updateUI()">
+                <option value="none">선택 안 함 (은랑, 효광, 스파키 3인만 고려)</option>
+                <option value="huohuo">곽향 파티</option>
+                <option value="hyakin">히아킨 파티</option>
+            </select>
+        </div>
+
+        <div class="section-title">버프 조건 선택</div>
+        <div class="checkbox-group">
+            <div class="checkbox-item">
+                <input type="checkbox" id="chkHyogwangE2">
+                <label for="chkHyogwangE2">효광 2돌 (시작 속도 +12%)</label>
+            </div>
+            
+            <div id="optsHuohuo" class="sub-options">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="chkHuohuoE1">
+                    <label for="chkHuohuoE1">곽향 1돌 (시작 속도 +12%)</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="chkHuohuoMsg" onchange="updateUI()">
+                    <label for="chkHuohuoMsg">메신저 4세트 (속도 +12%)</label>
+                </div>
+            </div>
+
+            <div id="optsHyakin" class="sub-options">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="chkHyakinE2" checked>
+                    <label for="chkHyakinE2">히아킨 2돌 (첫 턴 후 속도 +38%)</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="chkHyakinMsg">
+                    <label for="chkHyakinMsg">메신저 4세트 (속도 +12%)</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">캐릭터 마을 속도 입력</div>
+        
+        <div class="input-group" id="groupHuohuo" style="display: none;">
+            <label for="vHuo" style="color: #a6e3a1;">곽향 마을 속도:</label>
+            <input type="number" id="vHuo" placeholder="예: 152.5">
+        </div>
+
+        <div class="input-group" id="groupHyakin" style="display: none;">
+            <label for="vHyak" style="color: #a6e3a1;">히아킨 마을 속도:</label>
+            <input type="number" id="vHyak" placeholder="예: 205.1">
+        </div>
+
+        <div class="input-group">
+            <label for="v1">은랑 LV.999 마을 속도:</label>
+            <input type="number" id="v1" placeholder="예: 160.2">
+        </div>
+
+        <div class="input-group">
+            <label for="v2">효광 마을 속도:</label>
+            <input type="number" id="v2" placeholder="예: 145.5">
+        </div>
+
+        <button onclick="calculate()">스파키 목표 속도 확인하기</button>
+
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function updateUI() {
+            const support = document.getElementById('supportChar').value;
+            const optsHuohuo = document.getElementById('optsHuohuo');
+            const optsHyakin = document.getElementById('optsHyakin');
+            const groupHuohuo = document.getElementById('groupHuohuo');
+            const groupHyakin = document.getElementById('groupHyakin');
+            const chkHuoMsg = document.getElementById('chkHuohuoMsg').checked;
+
+            if (support === 'huohuo') {
+                optsHuohuo.style.display = 'block';
+                optsHyakin.style.display = 'none';
+                groupHuohuo.style.display = chkHuoMsg ? 'block' : 'none'; 
+                groupHyakin.style.display = 'none';
+            } else if (support === 'hyakin') {
+                optsHuohuo.style.display = 'none';
+                optsHyakin.style.display = 'block';
+                groupHuohuo.style.display = 'none';
+                groupHyakin.style.display = 'block'; 
+            } else {
+                optsHuohuo.style.display = 'none';
+                optsHyakin.style.display = 'none';
+                groupHuohuo.style.display = 'none';
+                groupHyakin.style.display = 'none';
+            }
+        }
+
+        function calculate() {
+            const support = document.getElementById('supportChar').value;
+            const v1_town = parseFloat(document.getElementById('v1').value);
+            const v2_town = parseFloat(document.getElementById('v2').value);
+            const hyogE2 = document.getElementById('chkHyogwangE2').checked;
+
+            const huoE1 = document.getElementById('chkHuohuoE1').checked;
+            const huoMsg = document.getElementById('chkHuohuoMsg').checked;
+            const vHuo = parseFloat(document.getElementById('vHuo').value);
+
+            const hyakE2 = document.getElementById('chkHyakinE2').checked;
+            const hyakMsg = document.getElementById('chkHyakinMsg').checked;
+            const vHyak = parseFloat(document.getElementById('vHyak').value);
+
+            if (isNaN(v1_town) || isNaN(v2_town)) return alert("은랑과 효광의 마을 속도를 입력해주세요.");
+            if (support === 'huohuo' && huoMsg && isNaN(vHuo)) return alert("곽향의 마을 속도를 입력해주세요.");
+            if (support === 'hyakin' && isNaN(vHyak)) return alert("히아킨의 마을 속도를 입력해주세요.");
+
+            const s_base = [110, 101, 107]; 
+            let b_start = hyogE2 ? 0.12 : 0;
+            if (support === 'huohuo' && huoE1) b_start += 0.12;
+
+            // 이벤트 기반 정밀 시뮬레이션 엔진
+            function runEventSimulation(v3, maxTime = 1000) {
+                let t = 0;
+                let d = [0, 0, 0];
+                let dAha = 0;
+                let v = [v1_town + s_base[0]*b_start, v2_town + s_base[1]*b_start, v3 + s_base[2]*b_start];
+                
+                let state_hyak = !(support === 'hyakin' && hyakE2);
+                let hasMsg = (support === 'hyakin' && hyakMsg) || (support === 'huohuo' && huoMsg);
+                let state_msg_trigger = !hasMsg;
+                let d_msg = [0, 0, 0];
+                let state_msg_active = [false, false, false];
+                
+                let max_v3 = v[2];
+                let max_aha = 80 + v[0]/5 + v[1]/10 + v[2]/20;
+                let aha_at_300 = 0, aha_at_500 = 0;
+                let d3_reached_first = false;
+                let race_finished = false;
+
+                while (t < maxTime) {
+                    let aha_curr = 80 + v[0]/5 + v[1]/10 + v[2]/20;
+                    if (v[2] > max_v3) max_v3 = v[2];
+                    if (aha_curr > max_aha) max_aha = aha_curr;
+
+                    let t_next = maxTime;
+
+                    // 스파키 vs 아하 경주 도착 시점
+                    if (!race_finished) {
+                        let t_end_3 = (10000 - d[2]) / v[2];
+                        let t_end_Aha = (10000 - dAha) / aha_curr;
+                        t_next = Math.min(t_next, t + t_end_3, t + t_end_Aha);
+                    }
+
+                    // 버프 이벤트 스케줄링
+                    if (!state_hyak) {
+                        let t_h = 10000 / vHyak;
+                        if (t_h > t) t_next = Math.min(t_next, t_h);
+                    }
+
+                    if (!state_msg_trigger) {
+                        if (support === 'hyakin' && hyakMsg) {
+                            let t_sw = t + (10000 - d[0]) / v[0];
+                            t_next = Math.min(t_next, t_sw);
+                        } else if (support === 'huohuo' && huoMsg) {
+                            let t_huo = 10000 / vHuo;
+                            if (t_huo > t) t_next = Math.min(t_next, t_huo);
+                        }
+                    }
+
+                    for (let i = 0; i < 3; i++) {
+                        if (state_msg_active[i]) {
+                            let t_me = t + (10000 - d_msg[i]) / v[i];
+                            t_next = Math.min(t_next, t_me);
+                        }
+                    }
+
+                    // 0라운드, 2라운드 체크포인트
+                    if (t < 300 && t_next > 300) t_next = 300;
+                    if (t < 500 && t_next > 500) t_next = 500;
+
+                    let dt = t_next - t;
+                    if (dt < 1e-10) dt = 1e-10; 
+
+                    // 시간 진행
+                    t += dt;
+                    d[0] += v[0] * dt;
+                    d[1] += v[1] * dt;
+                    d[2] += v[2] * dt;
+                    dAha += aha_curr * dt;
+                    for (let i = 0; i < 3; i++) {
+                        if (state_msg_active[i]) d_msg[i] += v[i] * dt;
+                    }
+
+                    // 체크포인트 기록
+                    if (t >= 300 - 1e-7 && aha_at_300 === 0) aha_at_300 = dAha;
+                    if (t >= 500 - 1e-7 && aha_at_500 === 0) aha_at_500 = dAha;
+
+                    // 경주 승패 판정
+                    if (!race_finished && (d[2] >= 10000 - 1e-7 || dAha >= 10000 - 1e-7)) {
+                        d3_reached_first = (d[2] >= dAha);
+                        race_finished = true;
+                    }
+
+                    // 이벤트 발동 처리
+                    if (!state_hyak && t >= (10000 / vHyak) - 1e-7) {
+                        state_hyak = true;
+                        v[0] += s_base[0] * 0.38; v[1] += s_base[1] * 0.38; v[2] += s_base[2] * 0.38;
+                    }
+
+                    if (!state_msg_trigger) {
+                        let triggered = false;
+                        if (support === 'hyakin' && hyakMsg && d[0] >= 10000 - 1e-7) triggered = true;
+                        if (support === 'huohuo' && huoMsg && t >= (10000 / vHuo) - 1e-7) triggered = true;
+                        
+                        if (triggered) {
+                            state_msg_trigger = true;
+                            for (let i = 0; i < 3; i++) {
+                                state_msg_active[i] = true;
+                                v[i] += s_base[i] * 0.12;
+                            }
+                        }
+                    }
+
+                    for (let i = 0; i < 3; i++) {
+                        if (state_msg_active[i] && d_msg[i] >= 10000 - 1e-7) {
+                            state_msg_active[i] = false;
+                            v[i] -= s_base[i] * 0.12;
+                        }
+                    }
+                }
+
+                return {
+                    overtake: d3_reached_first,
+                    max_v3: max_v3,
+                    max_aha: max_aha,
+                    aha_actions_300: Math.floor(aha_at_300 / 10000),
+                    aha_actions_500: Math.floor(aha_at_500 / 10000)
+                };
+            }
+
+            // 이분 탐색
+            let low = 90, high = 300, precision = 0.0001, boundary = -1;
+            while (high - low > precision) {
+                let mid = (low + high) / 2;
+                let sim = runEventSimulation(mid, 1000); 
+                if (sim.overtake) {
+                    high = mid; boundary = mid;
+                } else {
+                    low = mid;
+                }
+            }
+
+            if (boundary !== -1) {
+                let safeV3 = (Math.floor(boundary * 10) / 10) + 0.1;
+                let finalStats = runEventSimulation(safeV3, 500); 
+
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    스파키가 아하를 추월하려면 마을 속도 최소
+                    <span class="highlight">${safeV3.toFixed(1)}</span>
+                    <div class="final-speed">(버프 적용 스파키 최고 속도: <strong>${finalStats.max_v3.toFixed(2)}</strong>)</div>
+                    이상을 맞춰야 합니다.
+                    <div class="aha-speed">버프 적용 아하 최고 속도: <strong>${finalStats.max_aha.toFixed(2)}</strong></div>
+                    <span class="warning-text">* 아하의 속도 경계값에서 소수점 둘째 자리를 버리고 0.1을 더한 실전 세팅 수치입니다.</span>
+                    
+                    <div class="action-stats">
+                        <strong>이상중재 기준 아하타임 예상 횟수</strong>
+                        <div class="action-item">0라운드 (300 AV) : <span><strong>${finalStats.aha_actions_300}</strong> 번</span></div>
+                        <div class="action-item">2라운드 (500 AV) : <span><strong>${finalStats.aha_actions_500}</strong> 번</span></div>
+                    </div>
+                `;
+            } else {
+                alert("계산 범위를 초과했습니다. 수치를 다시 확인해주세요.");
+            }
+        }
+    </script>
+</body>
+</html>
