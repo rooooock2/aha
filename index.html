@@ -6,7 +6,7 @@
     <title>스파키 속도 계산기</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #1e1e2e; color: #cdd6f4; display: flex; justify-content: center; padding: 20px; }
-        .container { width: 100%; max-width: 480px; background: #313244; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .container { width: 100%; max-width: 520px; background: #313244; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         h2 { text-align: center; color: #f9e2af; margin-bottom: 20px; }
         .section-title { color: #89b4fa; font-size: 1.1em; margin-bottom: 10px; border-bottom: 1px solid #45475a; padding-bottom: 5px; margin-top: 15px; }
         .input-group { margin-bottom: 15px; }
@@ -16,22 +16,30 @@
         input[type="checkbox"] { margin-right: 10px; width: 18px; height: 18px; accent-color: #cba6f7; }
         select, input[type="number"] { width: 100%; padding: 10px; box-sizing: border-box; background: #181825; color: white; border: 1px solid #585b70; border-radius: 6px; font-size: 16px; margin-top: 5px; }
         label { font-weight: bold; }
-        button { width: 100%; padding: 14px; margin-top: 15px; background-color: #cba6f7; color: #11111b; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
-        button:hover { background-color: #b4befe; }
+        button.calc-btn { width: 100%; padding: 14px; margin-top: 15px; background-color: #cba6f7; color: #11111b; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
+        button.calc-btn:hover { background-color: #b4befe; }
         .result { margin-top: 20px; padding: 20px; background-color: #181825; border-radius: 8px; text-align: center; border: 1px solid #a6e3a1; }
         .highlight { color: #f38ba8; font-size: 1.8em; font-weight: bold; display: block; margin: 10px 0 5px 0; }
         .final-speed { color: #b4befe; font-size: 0.9em; margin-bottom: 10px; }
         .aha-speed { color: #fab387; font-size: 0.95em; margin-top: 10px; border-top: 1px dashed #585b70; padding-top: 10px; }
         .warning-text { color: #f9e2af; font-size: 0.8em; margin-top: 10px; display: block; word-break: keep-all; }
         .action-stats { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #585b70; color: #89dceb; font-size: 0.95em; text-align: left; }
-        .action-item { margin-top: 5px; color: #cdd6f4; display: flex; justify-content: space-between; }
+        .action-item { margin-top: 5px; color: #cdd6f4; display: flex; justify-content: space-between; align-items: center; }
         .action-item strong { color: #a6e3a1; font-size: 1.1em; }
         .sub-options { display: none; border-top: 1px dashed #585b70; padding-top: 10px; margin-top: 10px; }
+        
+        #debugBtn { background: none; border: 1px solid #585b70; color: #a6adc8; padding: 10px; border-radius: 6px; font-size: 0.85em; cursor: pointer; margin-top: 15px; transition: all 0.2s; width: 100%; display: none; }
+        #debugBtn:hover { color: #cdd6f4; border-color: #89b4fa; background: rgba(137, 180, 250, 0.1); }
+        .debug-box { margin-top: 15px; padding: 18px; background: rgba(0,0,0,0.25); border-radius: 8px; font-size: 0.85em; color: #bac2de; line-height: 1.6; display: none; border: 1px solid #45475a; text-align: left;}
+        .debug-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; border-top: 1px dashed #585b70; padding-top: 10px; }
+        .debug-title { color: #f9e2af; font-weight: bold; text-align: center; margin-bottom: 5px;}
+        .optimize-card { background: rgba(166, 227, 161, 0.1); border: 1px solid #a6e3a1; padding: 12px; border-radius: 8px; margin-top: 15px; }
+        .val-badge { background: #45475a; padding: 2px 6px; border-radius: 4px; color: #f9e2af; font-family: monospace; font-size: 1.1em;}
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>환락파티 속도 컷 계산기</h2>
+        <h2>스파키 속도 계산기</h2>
 
         <div class="input-group">
             <label for="supportChar" style="color: #f38ba8;">파티 힐러 구성</label>
@@ -66,8 +74,14 @@
                     <label for="chkHyakinE2">히아킨 2돌 (첫 턴 후 속도 +38%)</label>
                 </div>
                 <div class="checkbox-item">
-                    <input type="checkbox" id="chkHyakinMsg">
+                    <input type="checkbox" id="chkHyakinMsg" onchange="updateUI()">
                     <label for="chkHyakinMsg">메신저 4세트 (속도 +12%)</label>
+                </div>
+                <div id="swE2Wrapper" style="display:none; margin-top: 5px; margin-left: 20px; color: #f9e2af; font-size: 0.9em;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chkSWE2">
+                        <label for="chkSWE2">ㄴ 은랑 2돌 이상 (메신저 1턴 연장)</label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -76,27 +90,30 @@
         
         <div class="input-group" id="groupHuohuo" style="display: none;">
             <label for="vHuo" style="color: #a6e3a1;">곽향 마을 속도:</label>
-            <input type="number" id="vHuo" placeholder="예: 152.5">
+            <input type="number" id="vHuo">
         </div>
 
         <div class="input-group" id="groupHyakin" style="display: none;">
             <label for="vHyak" style="color: #a6e3a1;">히아킨 마을 속도:</label>
-            <input type="number" id="vHyak" placeholder="예: 205.1">
+            <input type="number" id="vHyak">
         </div>
 
         <div class="input-group">
-            <label for="v1">은랑 LV.999 마을 속도:</label>
-            <input type="number" id="v1" placeholder="예: 160.2">
+            <label for="v1">은랑 마을 속도:</label>
+            <input type="number" id="v1">
         </div>
 
         <div class="input-group">
             <label for="v2">효광 마을 속도:</label>
-            <input type="number" id="v2" placeholder="예: 145.5">
+            <input type="number" id="v2">
         </div>
 
-        <button onclick="calculate()">스파키 목표 속도 확인하기</button>
+        <button class="calc-btn" onclick="calculate()">스파키 목표 속도 확인하기</button>
 
         <div id="result" class="result" style="display: none;"></div>
+        
+        <button id="debugBtn" onclick="toggleDebug()">[상세 검산 및 횟수 최적화 데이터]</button>
+        <div id="debugBox" class="debug-box"></div>
     </div>
 
     <script>
@@ -107,26 +124,38 @@
             const groupHuohuo = document.getElementById('groupHuohuo');
             const groupHyakin = document.getElementById('groupHyakin');
             const chkHuoMsg = document.getElementById('chkHuohuoMsg').checked;
+            const chkHyakMsg = document.getElementById('chkHyakinMsg').checked;
 
             if (support === 'huohuo') {
                 optsHuohuo.style.display = 'block';
                 optsHyakin.style.display = 'none';
                 groupHuohuo.style.display = chkHuoMsg ? 'block' : 'none'; 
                 groupHyakin.style.display = 'none';
+                document.getElementById('swE2Wrapper').style.display = 'none';
             } else if (support === 'hyakin') {
                 optsHuohuo.style.display = 'none';
                 optsHyakin.style.display = 'block';
                 groupHuohuo.style.display = 'none';
                 groupHyakin.style.display = 'block'; 
+                document.getElementById('swE2Wrapper').style.display = chkHyakMsg ? 'block' : 'none';
             } else {
                 optsHuohuo.style.display = 'none';
                 optsHyakin.style.display = 'none';
                 groupHuohuo.style.display = 'none';
                 groupHyakin.style.display = 'none';
+                document.getElementById('swE2Wrapper').style.display = 'none';
             }
         }
 
-        // 핵심 수정: 아하 속도 실시간 정렬 계산 함수
+        function toggleDebug() {
+            const box = document.getElementById('debugBox');
+            if (box.style.display === 'none' || box.style.display === '') {
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
         function getAhaSpeed(vArr) {
             let sorted = [...vArr].sort((a, b) => b - a);
             return 80 + (sorted[0] / 5) + (sorted[1] / 10) + (sorted[2] / 20);
@@ -145,6 +174,7 @@
             const hyakE2 = document.getElementById('chkHyakinE2').checked;
             const hyakMsg = document.getElementById('chkHyakinMsg').checked;
             const vHyak = parseFloat(document.getElementById('vHyak').value);
+            const swE2 = document.getElementById('chkSWE2') ? document.getElementById('chkSWE2').checked : false;
 
             if (isNaN(v1_town) || isNaN(v2_town)) return alert("은랑과 효광의 마을 속도를 입력해주세요.");
             if (support === 'huohuo' && huoMsg && isNaN(vHuo)) return alert("곽향의 마을 속도를 입력해주세요.");
@@ -163,6 +193,8 @@
                 let state_hyak = !(support === 'hyakin' && hyakE2);
                 let hasMsg = (support === 'hyakin' && hyakMsg) || (support === 'huohuo' && huoMsg);
                 let state_msg_trigger = !hasMsg;
+                
+                let msg_target_dist = [10000, 10000, 10000];
                 let d_msg = [0, 0, 0];
                 let state_msg_active = [false, false, false];
                 
@@ -171,9 +203,10 @@
                 let aha_at_300 = 0, aha_at_500 = 0;
                 let d3_reached_first = false;
                 let race_finished = false;
+                
+                let t_finish_3 = 0, t_finish_Aha = 0;
 
                 while (t < maxTime) {
-                    // 실시간 정렬이 반영된 아하 속도 호출
                     let aha_curr = getAhaSpeed(v);
                     if (v[2] > max_v3) max_v3 = v[2];
                     if (aha_curr > max_aha) max_aha = aha_curr;
@@ -203,7 +236,7 @@
 
                     for (let i = 0; i < 3; i++) {
                         if (state_msg_active[i]) {
-                            let t_me = t + (10000 - d_msg[i]) / v[i];
+                            let t_me = t + (msg_target_dist[i] - d_msg[i]) / v[i];
                             t_next = Math.min(t_next, t_me);
                         }
                     }
@@ -213,6 +246,13 @@
 
                     let dt = t_next - t;
                     if (dt < 1e-10) dt = 1e-10; 
+                    
+                    if (t_finish_3 === 0 && d[2] + v[2]*dt >= 10000 - 1e-7) {
+                        t_finish_3 = t + (10000 - d[2]) / v[2];
+                    }
+                    if (t_finish_Aha === 0 && dAha + aha_curr*dt >= 10000 - 1e-7) {
+                        t_finish_Aha = t + (10000 - dAha) / aha_curr;
+                    }
 
                     t += dt;
                     d[0] += v[0] * dt;
@@ -246,12 +286,20 @@
                             for (let i = 0; i < 3; i++) {
                                 state_msg_active[i] = true;
                                 v[i] += s_base[i] * 0.12;
+                                d_msg[i] = 0; 
+                                msg_target_dist[i] = 10000;
+                            }
+                            
+                            if (support === 'hyakin') {
+                                if (swE2) msg_target_dist[0] = 20000; 
+                                d[0] += 10000; 
+                                d_msg[0] += 10000;
                             }
                         }
                     }
 
                     for (let i = 0; i < 3; i++) {
-                        if (state_msg_active[i] && d_msg[i] >= 10000 - 1e-7) {
+                        if (state_msg_active[i] && d_msg[i] >= msg_target_dist[i] - 1e-7) {
                             state_msg_active[i] = false;
                             v[i] -= s_base[i] * 0.12;
                         }
@@ -263,7 +311,11 @@
                     max_v3: max_v3,
                     max_aha: max_aha,
                     aha_actions_300: Math.floor(aha_at_300 / 10000),
-                    aha_actions_500: Math.floor(aha_at_500 / 10000)
+                    aha_actions_500: Math.floor(aha_at_500 / 10000),
+                    t_finish_3: t_finish_3,
+                    t_finish_Aha: t_finish_Aha,
+                    total_aha_dist_300: aha_at_300,
+                    total_aha_dist_500: aha_at_500
                 };
             }
 
@@ -297,6 +349,60 @@
                         <div class="action-item">0라운드 (300 AV) : <span><strong>${finalStats.aha_actions_300}</strong> 번</span></div>
                         <div class="action-item">2라운드 (500 AV) : <span><strong>${finalStats.aha_actions_500}</strong> 번</span></div>
                     </div>
+                `;
+                
+                const debugBtn = document.getElementById('debugBtn');
+                const debugBox = document.getElementById('debugBox');
+                debugBtn.style.display = 'block';
+                
+                let dist_to_next_300 = (finalStats.aha_actions_300 + 1) * 10000 - finalStats.total_aha_dist_300;
+                let req_v_aha_300 = dist_to_next_300 / 300;
+                
+                let dist_to_next_500 = (finalStats.aha_actions_500 + 1) * 10000 - finalStats.total_aha_dist_500;
+                let req_v_aha_500 = dist_to_next_500 / 500;
+
+                function makeGuide(av, dist_to_next, req_v_aha) {
+                    if (dist_to_next > 3000) return '';
+                    let eq_req = req_v_aha / 0.35; 
+                    return `
+                        <div class="optimize-card">
+                            <strong>✨ ${av} AV 기준 아하타임 +1회 가이드</strong><br>
+                            다음 행동까지 <b>${dist_to_next.toFixed(1)}</b> 거리가 부족합니다.<br>
+                            아하의 평균 속도를 <b>+${req_v_aha.toFixed(2)}</b> 올려야 합니다.<br>
+                            <div style="margin-top: 8px; font-size: 0.9em;">
+                                <span style="color: #a6e3a1; font-weight: bold;">[파티 전원 균등 분배 시]</span><br>
+                                - 은랑, 효광, 스파키 모두 <b>+${eq_req.toFixed(1)}</b> 증가<br>
+                                <span style="color: #f38ba8; font-weight: bold; display: inline-block; margin-top: 5px;">[1명에게 몰아줄 시 (택 1)]</span><br>
+                                - 은랑 <b>+${(req_v_aha * 5).toFixed(1)}</b> / 효광 <b>+${(req_v_aha * 10).toFixed(1)}</b> / 스파키 <b>+${(req_v_aha * 20).toFixed(1)}</b>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                let guideHTML = makeGuide(300, dist_to_next_300, req_v_aha_300) + makeGuide(500, dist_to_next_500, req_v_aha_500);
+                
+                if (guideHTML === '') {
+                    guideHTML = `<div class="optimize-card" style="color: #a6adc8; text-align: center;">※ 현재 속도에서는 다음 아하타임 횟수 증가까지 남은 거리가 너무 멀어(3000 초과) 가이드가 생략되었습니다.</div>`;
+                }
+                
+                debugBox.innerHTML = `
+                    <div class="debug-title">🔍 상세 검산 및 분석</div>
+                    <div class="debug-grid">
+                        <div>
+                            <span style="color:#fab387; font-weight:bold;">■ 아하 (Aha)</span><br>
+                            첫 턴 도착: <span class="val-badge">${finalStats.t_finish_Aha.toFixed(3)}</span> AV<br>
+                            300 누적거리: <span class="val-badge">${finalStats.total_aha_dist_300.toFixed(1)}</span><br>
+                            500 누적거리: <span class="val-badge">${finalStats.total_aha_dist_500.toFixed(1)}</span>
+                        </div>
+                        <div>
+                            <span style="color:#b4befe; font-weight:bold;">■ 스파키 (Sparkle)</span><br>
+                            첫 턴 도착: <span class="val-badge">${finalStats.t_finish_3.toFixed(3)}</span> AV<br>
+                            <span style="font-size: 0.9em; color:#a6adc8;">
+                            (아하보다 <strong>${(finalStats.t_finish_Aha - finalStats.t_finish_3).toFixed(4)} AV</strong> 빠름)
+                            </span>
+                        </div>
+                    </div>
+                    ${guideHTML}
                 `;
             } else {
                 alert("계산 범위를 초과했습니다. 수치를 다시 확인해주세요.");
