@@ -279,9 +279,7 @@
             }
 
             if (boundary !== -1) {
-                // 오차 수정: Feedback 로직에 Conflicting 정보 방지 위해 미세 안전마진 추가
-                let robustBoundary = boundary + 0.001;
-                let safeV3 = (Math.floor(robustBoundary * 10) / 10) + 0.1;
+                let safeV3 = (Math.floor(boundary * 10) / 10) + 0.1;
                 let finalStats = runEventSimulation(safeV3, 500); 
 
                 const resultDiv = document.getElementById('result');
