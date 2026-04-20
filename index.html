@@ -3,104 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>환락파티 속도컷</title>
+    <title>환락파티 계산기</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #1e1e2e; color: #cdd6f4; display: flex; justify-content: center; padding: 20px; }
-        .container { width: 100%; max-width: 520px; background: #313244; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .container { width: 100%; max-width: 540px; background: #313244; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         h2 { text-align: center; color: #f9e2af; margin-bottom: 20px; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; background: #45475a; color: #a6adc8; border: none; border-radius: 8px; font-weight: bold; font-size: 1em; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { background: #cba6f7; color: #11111b; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
         .section-title { color: #89b4fa; font-size: 1.1em; margin-bottom: 10px; border-bottom: 1px solid #45475a; padding-bottom: 5px; margin-top: 15px; }
         .input-group { margin-bottom: 15px; }
         .checkbox-group { background: #45475a; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         .checkbox-item { margin-bottom: 10px; display: flex; align-items: center; font-size: 0.95em; }
         .checkbox-item:last-child { margin-bottom: 0; }
-        input[type="checkbox"] { margin-right: 10px; width: 18px; height: 18px; accent-color: #cba6f7; }
-        select, input[type="number"] { width: 100%; padding: 10px; box-sizing: border-box; background: #181825; color: white; border: 1px solid #585b70; border-radius: 6px; font-size: 16px; margin-top: 5px; }
-        label { font-weight: bold; }
-        button.calc-btn { width: 100%; padding: 14px; margin-top: 15px; background-color: #cba6f7; color: #11111b; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
-        button.calc-btn:hover { background-color: #b4befe; }
-        .result { margin-top: 20px; padding: 20px; background-color: #181825; border-radius: 8px; text-align: center; border: 1px solid #a6e3a1; }
-        .highlight { color: #f38ba8; font-size: 1.8em; font-weight: bold; display: block; margin: 10px 0 5px 0; }
-        .action-stats { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #585b70; color: #89dceb; font-size: 0.95em; text-align: left; }
+        input[type="checkbox"], input[type="radio"] { margin-right: 10px; width: 18px; height: 18px; accent-color: #cba6f7; cursor: pointer; }
+        
+        select, input[type="number"] { width: 100%; padding: 10px; box-sizing: border-box; background: #181825; color: white; border: 1px solid #585b70; border-radius: 6px; font-size: 15px; margin-top: 5px; transition: 0.2s;}
+        select:focus, input[type="number"]:focus { border-color: #cba6f7; outline: none; }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: #181825; height: 8px; border-radius: 4px; outline: none; margin-top: 10px; border: 1px solid #585b70; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #cba6f7; cursor: pointer; transition: 0.1s; }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        label { font-weight: bold; cursor: pointer; }
+        
+        .result { margin-top: 20px; padding: 20px; background-color: #181825; border-radius: 8px; text-align: left; border: 1px solid #a6e3a1; transition: all 0.3s ease; }
+        .highlight { color: #f38ba8; font-size: 1.8em; font-weight: bold; display: block; margin: 10px 0 5px 0; text-align: center; }
+        .final-speed { color: #b4befe; font-size: 0.9em; margin-bottom: 10px; text-align: center; }
+        .action-stats { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #585b70; color: #89dceb; font-size: 0.95em; }
         .action-item { margin-top: 5px; color: #cdd6f4; display: flex; justify-content: space-between; align-items: center; }
+        
         .sub-options { display: none; border-top: 1px dashed #585b70; padding-top: 10px; margin-top: 10px; }
+        .optimize-card { background: rgba(166, 227, 161, 0.1); border: 1px solid #a6e3a1; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        .sw-card { background: rgba(203, 166, 247, 0.1); border: 1px solid #cba6f7; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        
+        .flex-inputs { display: flex; gap: 10px; margin-bottom: 5px; }
+        .flex-inputs .input-group { margin-bottom: 0; flex: 1; }
+        .flex-inputs label { font-size: 0.85em; color: #a6adc8; }
+        .eff-bar { display: flex; align-items: center; margin-top: 5px; }
+        .eff-label { width: 105px; font-weight: bold; }
+        .eff-val { color: #f9e2af; font-weight: bold; font-size: 1.1em;}
+        
+        .hidden-sync-wrapper { display: flex; align-items: center; gap: 15px; margin-top: 5px; }
+        .hidden-sync-wrapper input[type="number"] { width: 80px; margin-top: 0; text-align: center; font-weight: bold; color: #cba6f7; }
+        
         #debugBtn { background: none; border: 1px solid #585b70; color: #a6adc8; padding: 10px; border-radius: 6px; font-size: 0.85em; cursor: pointer; margin-top: 15px; width: 100%; display: none; }
         #debugBtn:hover { color: #cdd6f4; border-color: #89b4fa; background: rgba(137, 180, 250, 0.1); }
-        .debug-box { margin-top: 15px; padding: 18px; background: rgba(0,0,0,0.25); border-radius: 8px; font-size: 0.85em; color: #bac2de; line-height: 1.6; display: none; border: 1px solid #45475a; text-align: left;}
+        .debug-box { margin-top: 15px; padding: 18px; background: rgba(0,0,0,0.25); border-radius: 8px; font-size: 0.85em; color: #bac2de; line-height: 1.6; display: none; border: 1px solid #45475a;}
         .debug-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; border-top: 1px dashed #585b70; padding-top: 10px; }
-        .debug-title { color: #f9e2af; font-weight: bold; text-align: center; margin-bottom: 5px;}
-        .optimize-card { background: rgba(166, 227, 161, 0.1); border: 1px solid #a6e3a1; padding: 12px; border-radius: 8px; margin-top: 15px; }
-        .sw-card { background: rgba(203, 166, 247, 0.1); border: 1px solid #cba6f7; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left; }
     </style>
 </head>
-<body>
+<body onload="calculateDamage()">
     <div class="container">
-        <h2>환락파티 스파키 속도컷</h2>
+        <h2>환락파티 계산기</h2>
 
-        <div class="input-group">
-            <label for="supportChar" style="color: #f38ba8;">파티 힐러 구성</label>
-            <select id="supportChar" onchange="updateUI()">
-                <option value="none">선택 안 함 (3인 파티)</option>
-                <option value="huohuo">곽향 파티</option>
-                <option value="hyakin">히아킨 파티</option>
-            </select>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab1')">🏁 스파키 속도컷</button>
+            <button class="tab-btn" onclick="switchTab('tab2')">👾 은랑 부옵 효율</button>
         </div>
 
-        <div class="section-title">버프 조건 선택</div>
-        <div class="checkbox-group">
-            <div class="checkbox-item">
-                <input type="checkbox" id="chkHyogwangE2">
-                <label for="chkHyogwangE2">효광 2돌 (시작 속도 +12%)</label>
+        <div id="tab1" class="tab-panel active">
+            <div class="input-group">
+                <label for="supportChar" style="color: #f38ba8;">파티 힐러 구성</label>
+                <select id="supportChar" onchange="updateUI()">
+                    <option value="none">선택 안 함 (3인 파티)</option>
+                    <option value="huohuo">곽향 파티</option>
+                    <option value="hyakin">히아킨 파티</option>
+                </select>
             </div>
+
+            <div class="section-title">버프 조건 선택</div>
+            <div class="checkbox-group">
+                <div class="checkbox-item"><input type="checkbox" id="chkHyogwangE2" onchange="calculateSpeedCut()"><label for="chkHyogwangE2">효광 2돌 (시작 속도 +12%)</label></div>
+                
+                <div id="optsHuohuo" class="sub-options">
+                    <div class="checkbox-item"><input type="checkbox" id="chkHuohuoE1" onchange="calculateSpeedCut()"><label for="chkHuohuoE1">곽향 1돌 (시작 속도 +12%)</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="chkHuohuoMsg" onchange="updateUI()"><label for="chkHuohuoMsg">메신저 4세트 (속도 +12%)</label></div>
+                    <div id="huoE2Wrapper" style="display:none; margin-top: 5px; margin-left: 20px; color: #f9e2af; font-size: 0.9em;">
+                        <div class="checkbox-item"><input type="checkbox" id="chkHuoSWE2" onchange="calculateSpeedCut()"><label for="chkHuoSWE2">ㄴ 은랑 2돌 이상 (메신저 1턴 연장)</label></div>
+                    </div>
+                </div>
+
+                <div id="optsHyakin" class="sub-options">
+                    <div class="checkbox-item"><input type="checkbox" id="chkHyakinE2" checked onchange="calculateSpeedCut()"><label for="chkHyakinE2">히아킨 2돌 (첫 턴 후 속도 +38%)</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="chkHyakinMsg" onchange="updateUI()"><label for="chkHyakinMsg">메신저 4세트 (속도 +12%)</label></div>
+                    <div id="swE2Wrapper" style="display:none; margin-top: 5px; margin-left: 20px; color: #f9e2af; font-size: 0.9em;">
+                        <div class="checkbox-item"><input type="checkbox" id="chkSWE2" onchange="calculateSpeedCut()"><label for="chkSWE2">ㄴ 은랑 2돌 이상 (메신저 1턴 연장)</label></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">캐릭터 마을 속도 입력</div>
+            <div class="input-group" id="groupHuohuo" style="display: none;"><label>곽향 마을 속도:</label><input type="number" id="vHuo" oninput="calculateSpeedCut()"></div>
+            <div class="input-group" id="groupHyakin" style="display: none;"><label>히아킨 마을 속도:</label><input type="number" id="vHyak" oninput="calculateSpeedCut()"></div>
+            <div class="input-group"><label>은랑 마을 속도:</label><input type="number" id="v1" oninput="calculateSpeedCut()"></div>
+            <div class="input-group"><label>효광 마을 속도:</label><input type="number" id="v2" oninput="calculateSpeedCut()"></div>
+
+            <div id="resultSpeed" class="result" style="display: none;"></div>
             
-            <div id="optsHuohuo" class="sub-options">
-                <div class="checkbox-item">
-                    <input type="checkbox" id="chkHuohuoE1">
-                    <label for="chkHuohuoE1">곽향 1돌 (시작 속도 +12%)</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="chkHuohuoMsg" onchange="updateUI()">
-                    <label for="chkHuohuoMsg">메신저 4세트 (속도 +12%)</label>
-                </div>
-                <div id="huoE2Wrapper" style="display:none; margin-top: 5px; margin-left: 20px; color: #f9e2af; font-size: 0.9em;">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="chkHuoSWE2">
-                        <label for="chkHuoSWE2">ㄴ 은랑 2돌 이상 (메신저 1턴 연장)</label>
-                    </div>
-                </div>
-            </div>
-
-            <div id="optsHyakin" class="sub-options">
-                <div class="checkbox-item">
-                    <input type="checkbox" id="chkHyakinE2" checked>
-                    <label for="chkHyakinE2">히아킨 2돌 (첫 턴 후 속도 +38%)</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="chkHyakinMsg" onchange="updateUI()">
-                    <label for="chkHyakinMsg">메신저 4세트 (속도 +12%)</label>
-                </div>
-                <div id="swE2Wrapper" style="display:none; margin-top: 5px; margin-left: 20px; color: #f9e2af; font-size: 0.9em;">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="chkSWE2">
-                        <label for="chkSWE2">ㄴ 은랑 2돌 이상 (메신저 1턴 연장)</label>
-                    </div>
-                </div>
-            </div>
+            <button id="debugBtn" onclick="toggleDebug()">[상세 검산 및 아하타임 가이드]</button>
+            <div id="debugBox" class="debug-box"></div>
         </div>
 
-        <div class="section-title">캐릭터 마을 속도 입력</div>
-        <div class="input-group" id="groupHuohuo" style="display: none;"><label>곽향 마을 속도:</label><input type="number" id="vHuo"></div>
-        <div class="input-group" id="groupHyakin" style="display: none;"><label>히아킨 마을 속도:</label><input type="number" id="vHyak"></div>
-        <div class="input-group"><label>은랑 마을 속도:</label><input type="number" id="v1"></div>
-        <div class="input-group"><label>효광 마을 속도:</label><input type="number" id="v2"></div>
+        <div id="tab2" class="tab-panel">
+            <div class="section-title">은랑 버프 및 파티 조건</div>
+            <div class="checkbox-group">
+                <div class="checkbox-item"><input type="checkbox" id="chkSparkle2" checked onchange="calculateDamage()"><label for="chkSparkle2">스파키 파티 포함 (치피 +80%)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="chkSparkleLC2" checked onchange="calculateDamage()"><label for="chkSparkleLC2">스파키 전광 (환락도 +20%)</label></div>
+                
+                <div class="checkbox-item" style="margin-top: 10px;"><input type="checkbox" id="chkTB" onchange="updateTBUI(); calculateDamage()"><label for="chkTB">환락척자 파티 포함 (치피 +54%, 환락도 +12%)</label></div>
+                <div id="optsTB" class="sub-options" style="margin-left: 20px; display: none;">
+                    <div style="font-size: 0.85em; color: #a6adc8; margin-bottom: 5px;">ㄴ 환락척자 비술 효과 (택 1)</div>
+                    <div class="checkbox-item"><input type="radio" id="tech0" name="tbTech" value="0" checked onchange="calculateDamage()"><label for="tech0">미적용</label></div>
+                    <div class="checkbox-item"><input type="radio" id="tech20" name="tbTech" value="20" onchange="calculateDamage()"><label for="tech20">환락도 +20% 증가</label></div>
+                    <div class="checkbox-item"><input type="radio" id="tech30" name="tbTech" value="30" onchange="calculateDamage()"><label for="tech30">환락도 +30% 증가</label></div>
+                </div>
 
-        <button class="calc-btn" onclick="calculate()">정밀 분석 시작</button>
+                <div class="checkbox-item" style="margin-top: 10px;"><input type="checkbox" id="chkHyogwangLC2" checked onchange="calculateDamage()"><label for="chkHyogwangLC2">효광 전광 (치확 10%, 치피 30%)</label></div>
+                
+                <hr style="border: 0; border-top: 1px dashed #585b70; margin: 15px 0;">
+                <div style="font-size: 0.85em; color: #a6adc8; margin-bottom: 8px;">※ 전투 진입 시 적용될 속도 버프 선택</div>
+                <div class="checkbox-item"><input type="checkbox" id="chkHyogwangE2_2" onchange="calculateDamage()"><label for="chkHyogwangE2_2">효광 2돌 (속도 +12%)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="chkHuohuoE1_2" onchange="calculateDamage()"><label for="chkHuohuoE1_2">곽향 1돌 (속도 +12%)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="chkHyakinE2_2" onchange="calculateDamage()"><label for="chkHyakinE2_2">히아킨 2돌 (속도 +38%)</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="chkMsg4_2" onchange="calculateDamage()"><label for="chkMsg4_2">메신저 4세트 (속도 +12%)</label></div>
+                
+                <div style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label>히든 스코어 (40~300)</label>
+                        <div class="hidden-sync-wrapper">
+                            <input type="range" id="vHiddenRange" min="40" max="300" value="77" step="1" oninput="syncHiddenInput(); calculateDamage();">
+                            <input type="number" id="vHidden" value="77" min="40" max="300" oninput="syncHiddenRange(); calculateDamage();">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div id="result" class="result" style="display: none;"></div>
-        <button id="debugBtn" onclick="toggleDebug()">[상세 검산 및 분석 데이터]</button>
-        <div id="debugBox" class="debug-box"></div>
+            <div class="section-title">은랑 마을 스탯 입력 (스탯창 기준)</div>
+            <div class="flex-inputs">
+                <div class="input-group"><label>마을 속도</label><input type="number" id="vSW_town_spd" value="199.5" oninput="calculateDamage()"></div>
+                <div class="input-group"><label>마을 치확(%)</label><input type="number" id="vSW_town_cr" value="80.0" step="0.1" oninput="calculateDamage()"></div>
+                <div class="input-group"><label>마을 치피(%)</label><input type="number" id="vSW_town_cd" value="118.4" step="0.1" oninput="calculateDamage()"></div>
+            </div>
+
+            <div id="resultDmg" class="result" style="display: none;"></div>
+        </div>
     </div>
 
     <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
+            if(tabId === 'tab1') calculateSpeedCut();
+            if(tabId === 'tab2') calculateDamage();
+        }
+
         function updateUI() {
             const support = document.getElementById('supportChar').value;
             const chkHuoMsg = document.getElementById('chkHuohuoMsg').checked;
@@ -109,13 +173,28 @@
             document.getElementById('optsHuohuo').style.display = support === 'huohuo' ? 'block' : 'none';
             document.getElementById('optsHyakin').style.display = support === 'hyakin' ? 'block' : 'none';
             
-            // 곽향 속도창은 곽향 파티 + 메신저를 켰을 때만 노출
             document.getElementById('groupHuohuo').style.display = (support === 'huohuo' && chkHuoMsg) ? 'block' : 'none';
-            // 히아킨 속도창은 히아킨 파티면 메신저 유무 상관없이 노출 (자체 버프 타이밍 때문)
             document.getElementById('groupHyakin').style.display = support === 'hyakin' ? 'block' : 'none';
             
             document.getElementById('huoE2Wrapper').style.display = (support === 'huohuo' && chkHuoMsg) ? 'block' : 'none';
             document.getElementById('swE2Wrapper').style.display = (support === 'hyakin' && chkHyakMsg) ? 'block' : 'none';
+            
+            calculateSpeedCut();
+        }
+        
+        function updateTBUI() {
+            const chkTB = document.getElementById('chkTB').checked;
+            document.getElementById('optsTB').style.display = chkTB ? 'block' : 'none';
+        }
+
+        function syncHiddenInput() {
+            document.getElementById('vHidden').value = document.getElementById('vHiddenRange').value;
+        }
+        function syncHiddenRange() {
+            let val = document.getElementById('vHidden').value;
+            if(val < 40) val = 40;
+            if(val > 300) val = 300;
+            document.getElementById('vHiddenRange').value = val;
         }
 
         function toggleDebug() {
@@ -128,13 +207,10 @@
             return 80 + (sorted[0] / 5) + (sorted[1] / 10) + (sorted[2] / 20);
         }
 
-        function calculateJoy(spd) {
-            if (spd < 160) return 0;
-            let excess = Math.min(Math.floor(spd - 160), 100);
-            return 50 + (excess * 2);
-        }
-
-        function calculate() {
+        // ==========================================
+        // 탭 1: 스파키 속도컷 실시간 계산 로직
+        // ==========================================
+        function calculateSpeedCut() {
             const support = document.getElementById('supportChar').value;
             const v1_town = parseFloat(document.getElementById('v1').value);
             const v2_town = parseFloat(document.getElementById('v2').value);
@@ -143,9 +219,9 @@
             const vHyak = parseFloat(document.getElementById('vHyak').value);
             const swE2_active = (support === 'huohuo' ? document.getElementById('chkHuoSWE2').checked : document.getElementById('chkSWE2').checked);
 
-            if (isNaN(v1_town) || isNaN(v2_town)) return alert("속도를 입력해주세요.");
-            if (support === 'huohuo' && document.getElementById('chkHuohuoMsg').checked && isNaN(vHuo)) return alert("곽향의 마을 속도를 입력해주세요.");
-            if (support === 'hyakin' && isNaN(vHyak)) return alert("히아킨의 마을 속도를 입력해주세요.");
+            if (isNaN(v1_town) || isNaN(v2_town)) { document.getElementById('resultSpeed').style.display = 'none'; document.getElementById('debugBtn').style.display = 'none'; document.getElementById('debugBox').style.display = 'none'; return; }
+            if (support === 'huohuo' && document.getElementById('chkHuohuoMsg').checked && isNaN(vHuo)) { document.getElementById('resultSpeed').style.display = 'none'; document.getElementById('debugBtn').style.display = 'none'; document.getElementById('debugBox').style.display = 'none'; return; }
+            if (support === 'hyakin' && isNaN(vHyak)) { document.getElementById('resultSpeed').style.display = 'none'; document.getElementById('debugBtn').style.display = 'none'; document.getElementById('debugBox').style.display = 'none'; return; }
 
             const s_base = [110, 101, 107]; 
             let b_start = hyogE2 ? 0.12 : 0;
@@ -212,9 +288,7 @@
                     for(let i=0; i<3; i++) {
                         while (d[i] >= 10000 - 1e-7) {
                             if (i === 0 && sw_state === 0) {
-                                d[0] -= 10000;   
-                                sw_state = 3;    
-                                d[0] += 10000;   
+                                d[0] -= 10000; sw_state = 3; d[0] += 10000;   
                                 if (!state_msg_triggered && support === 'hyakin') {
                                     state_msg_triggered = true;
                                     for(let j=0; j<3; j++) {
@@ -244,30 +318,27 @@
             if (boundary !== -1) {
                 let safeV3 = (Math.floor(boundary * 10) / 10) + 0.1;
                 let res = runEventSimulation(safeV3, 500);
-                
-                let hasMsgBuff = (support === 'hyakin' && document.getElementById('chkHyakinMsg').checked) || (support === 'huohuo' && document.getElementById('chkHuohuoMsg').checked);
-                let v_sw_off = v1_town + s_base[0] * b_start + (support === 'hyakin' && document.getElementById('chkHyakinE2').checked ? s_base[0] * 0.38 : 0);
-                let v_sw_on = v_sw_off + (hasMsgBuff ? s_base[0] * 0.12 : 0);
 
-                let sw_spec_html = "";
-                if (hasMsgBuff) {
-                    sw_spec_html = `• 메신저 <b>OFF</b> 속도 : <span style="color:#cdd6f4;">${v_sw_off.toFixed(1)}</span> ➔ 환락도 <b>+${calculateJoy(v_sw_off)}%</b><br>
-                                    • 메신저 <b>ON</b> 속도 : <span style="color:#cdd6f4;">${v_sw_on.toFixed(1)}</span> ➔ 환락도 <b>+${calculateJoy(v_sw_on)}%</b><br>`;
-                } else {
-                    sw_spec_html = `• <b>최종 적용 속도</b> : <span style="color:#cdd6f4;">${v_sw_off.toFixed(1)}</span> ➔ 환락도 <b>+${calculateJoy(v_sw_off)}%</b><br>`;
+                const result = document.getElementById('resultSpeed');
+                result.style.display = 'block';
+                
+                let distNext3 = (res.aha_300 + 1) * 10000 - res.total_aha_dist_300;
+                let req_300 = distNext3 / 300;
+                let distNext5 = (res.aha_500 + 1) * 10000 - res.total_aha_dist_500;
+                let req_500 = distNext5 / 500;
+                
+                function guide(av, dist, req) {
+                    if (dist > 3000) return '';
+                    return `<div class="optimize-card" style="margin-top:10px;"><strong>✨ ${av}AV 아하 +1회 가이드</strong><br>거리 ${dist.toFixed(1)} 부족. 아하 속도 +${req.toFixed(2)} 필요.<br><div style="font-size: 0.9em; margin-top:5px; color:#a6adc8;">[균등] 전원 <b>+${(req/0.35).toFixed(1)}</b><br>[몰아주기] 은랑 <b>+${(req*5).toFixed(1)}</b> / 효광 <b>+${(req*10).toFixed(1)}</b> / 스파키 <b>+${(req*20).toFixed(1)}</b></div></div>`;
                 }
 
-                const result = document.getElementById('result');
-                result.style.display = 'block';
                 result.innerHTML = `
-                    스파키 최소 마을 속도: <span class="highlight">${safeV3.toFixed(1)}</span>
+                    <div style="text-align: center;">스파키 최소 마을 속도: <span class="highlight">${safeV3.toFixed(1)}</span></div>
                     <div class="final-speed">(스파키 최고: ${res.max_v3.toFixed(2)} / 아하 최고: ${res.max_aha.toFixed(2)})</div>
                     
-                    <div class="sw-card">
-                        <strong style="color: #cba6f7; font-size: 1.1em;">👾 메인 딜러 은랑 최종 스펙</strong><br>
-                        ${sw_spec_html}
-                        • <b>유효 정규 턴수</b> (변신 전 제외): <br>
-                        <span style="color:#a6e3a1;">&nbsp;&nbsp;150AV: <b>${res.sw_150}</b>회 / 300AV: <b>${res.sw_300}</b>회 / 500AV: <b>${res.sw_500}</b>회</span>
+                    <div class="sw-card" style="margin-top: 10px;">
+                        <strong style="color: #cba6f7;">👾 은랑 유효 정규 턴수</strong> (변신 전 제외)<br>
+                        <span style="color:#a6e3a1;">150AV(0R): <b>${res.sw_150}</b>회 / 300AV(0R): <b>${res.sw_300}</b>회 / 500AV(2R): <b>${res.sw_500}</b>회</span>
                     </div>
 
                     <div class="action-stats">
@@ -278,21 +349,129 @@
                 `;
                 
                 document.getElementById('debugBtn').style.display = 'block';
-                const dNext3 = (res.aha_300 + 1) * 10000 - res.total_aha_dist_300;
-                const dNext5 = (res.aha_500 + 1) * 10000 - res.total_aha_dist_500;
-                
-                function guide(av, dist, req) {
-                    if (dist > 3000) return '';
-                    return `<div class="optimize-card"><strong>✨ ${av}AV 아하 +1회 가이드</strong><br>거리 ${dist.toFixed(1)} 부족. 아하 평균 속도 +${req.toFixed(2)} 필요.<br><div style="font-size: 0.9em; margin-top:5px;">[전원 균등] 전원 <b>+${(req/0.35).toFixed(1)}</b><br>[몰아주기] 은랑 <b>+${(req*5).toFixed(1)}</b> / 효광 <b>+${(req*10).toFixed(1)}</b> / 스파키 <b>+${(req*20).toFixed(1)}</b></div></div>`;
-                }
-                
                 document.getElementById('debugBox').innerHTML = `
-                    <div class="debug-title">🔍 상세 검산 및 분석</div>
+                    <div class="debug-title">🔍 타임라인 검산</div>
                     <div class="debug-grid">
-                        <div><b>아하 (Aha)</b><br>첫 턴 도착: ${res.t_fA.toFixed(3)} AV<br>300 누적거리: ${res.total_aha_dist_300.toFixed(1)}<br>500 누적거리: ${res.total_aha_dist_500.toFixed(1)}</div>
-                        <div><b>스파키 (Sparkle)</b><br>첫 턴 도착: ${res.t_f3.toFixed(3)} AV<br>(아하 대비 -${(res.t_fA - res.t_f3).toFixed(4)} AV)</div>
-                    </div>` + guide(300, dNext3, dNext3/300) + guide(500, dNext5, dNext5/500) || '<div class="optimize-card" style="text-align:center; color:#a6adc8;">거리 부족분 3000 초과로 가이드 생략</div>';
+                        <div><b>아하 (Aha)</b><br>첫 턴: ${res.t_fA.toFixed(3)} AV<br>300 누적: ${res.total_aha_dist_300.toFixed(1)}<br>500 누적: ${res.total_aha_dist_500.toFixed(1)}</div>
+                        <div><b>스파키 (Sparkle)</b><br>첫 턴: ${res.t_f3.toFixed(3)} AV<br>(오차: -${(res.t_fA - res.t_f3).toFixed(4)} AV)</div>
+                    </div>
+                    ${guide(300, distNext3, req_300)}
+                    ${guide(500, distNext5, req_500)}
+                `;
             }
+        }
+
+        // ==========================================
+        // 탭 2: 은랑 딜 효율 실시간 계산 로직 (수정된 치확 변환 반영)
+        // ==========================================
+        function getSWStats(t_spd, t_cr, t_cd) {
+            const hidden = Math.max(0, Math.min(300, parseFloat(document.getElementById('vHidden').value) || 150));
+            const hasSparkle = document.getElementById('chkSparkle2').checked;
+            const hasSparkleLC = document.getElementById('chkSparkleLC2').checked;
+            const hasHyogwangLC = document.getElementById('chkHyogwangLC2').checked;
+            
+            const hasTB = document.getElementById('chkTB').checked;
+            const tbTechVal = parseInt(document.querySelector('input[name="tbTech"]:checked').value);
+            
+            const hasHyoE2 = document.getElementById('chkHyogwangE2_2').checked;
+            const hasHuoE1 = document.getElementById('chkHuohuoE1_2').checked;
+            const hasHyakE2 = document.getElementById('chkHyakinE2_2').checked;
+            const hasMsg = document.getElementById('chkMsg4_2').checked;
+
+            let spd_buff_pct = (hasHyoE2 ? 0.12 : 0) + (hasHuoE1 ? 0.12 : 0) + (hasHyakE2 ? 0.38 : 0) + (hasMsg ? 0.12 : 0);
+            let combat_spd = t_spd + (110 * spd_buff_pct);
+
+            // 1. 환락도
+            let joy = 10 + 8 + 10 + 30; // 58 (효광 결계 디폴트)
+            if (hasSparkleLC) joy += 20;
+            if (hasTB) {
+                joy += 12;       
+                joy += tbTechVal; 
+            }
+
+            if (combat_spd >= 160) {
+                joy += 50;
+                let excess_spd = Math.min(Math.max(combat_spd - 160, 0), 100); 
+                joy += excess_spd * 2; 
+            }
+
+            // 2. 치확 및 히든 스코어 변환 로직 (오류 수정됨)
+            let combat_cr = t_cr;
+            if (hasHyogwangLC) combat_cr += 10; 
+            let hidden_cr = hidden * 0.4;
+            
+            let raw_cr = combat_cr + hidden_cr; 
+            
+            // 3. 치피 
+            let combat_cd = t_cd + 32; // 장신구 기본
+            if (hasSparkle) combat_cd += 80;
+            if (hasTB) combat_cd += 54; 
+            if (hasHyogwangLC) combat_cd += 30;
+
+            let final_cr = raw_cr;
+            let converted_cd = 0; 
+            
+            if (raw_cr > 100) {
+                final_cr = 100;
+                let excess_cr = raw_cr - 100;
+                // 초과 치확 중 히든 스코어가 제공한 양까지만 변환 가능
+                let convertible_cr = Math.min(excess_cr, hidden_cr);
+                converted_cd = convertible_cr * 2; 
+                combat_cd += converted_cd; 
+            }
+
+            // 기댓값 계수 
+            let dmg_mult = (1 + joy / 100) * (1 + (final_cr / 100) * (combat_cd / 100));
+
+            return { combat_spd, joy, cr: final_cr, cd: combat_cd, converted_cd, dmg_mult };
+        }
+
+        function calculateDamage() {
+            const t_spd = parseFloat(document.getElementById('vSW_town_spd').value);
+            const t_cr = parseFloat(document.getElementById('vSW_town_cr').value);
+            const t_cd = parseFloat(document.getElementById('vSW_town_cd').value);
+            
+            if (isNaN(t_spd) || isNaN(t_cr) || isNaN(t_cd)) { document.getElementById('resultDmg').style.display = 'none'; return; }
+
+            let baseStats = getSWStats(t_spd, t_cr, t_cd);
+            
+            // 부옵 1줄당 효율 연산
+            let spd_stats = getSWStats(t_spd + 2.3, t_cr, t_cd);
+            let cd_stats = getSWStats(t_spd, t_cr, t_cd + 5.8);
+
+            let eff_spd = ((spd_stats.dmg_mult / baseStats.dmg_mult) - 1) * 100;
+            let eff_cd = ((cd_stats.dmg_mult / baseStats.dmg_mult) - 1) * 100;
+
+            let max_eff = Math.max(eff_spd, eff_cd);
+            let spd_color = eff_spd === max_eff ? '#f38ba8' : '#cdd6f4';
+            let cd_color = eff_cd === max_eff ? '#f38ba8' : '#cdd6f4';
+
+            const result = document.getElementById('resultDmg');
+            result.style.display = 'block';
+            result.innerHTML = `
+                <div style="background: rgba(0,0,0,0.25); padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; border: 1px solid #f9e2af;">
+                    <span style="font-size: 0.9em; color: #a6adc8;">현재 세팅 총 데미지 기댓값 계수</span><br>
+                    <span style="font-size: 2.2em; color: #f9e2af; font-weight: bold; line-height: 1.2;">${baseStats.dmg_mult.toFixed(4)}</span>
+                </div>
+
+                <div class="sw-card" style="margin-top: 0;">
+                    <strong style="color: #cba6f7; font-size: 1.2em;">📊 은랑 전투 진입 스펙 (버프 적용)</strong><br>
+                    <div style="margin-top: 8px; line-height: 1.6;">
+                        • <b>최종 전투 속도</b> : <span style="color:#cdd6f4;">${baseStats.combat_spd.toFixed(1)}</span><br>
+                        • <b>총 환락도</b> : <span style="color:#a6e3a1;">${baseStats.joy.toFixed(1)}%</span> <span style="font-size:0.85em; color:#a6adc8;">(효광 결계 30% 등 포함)</span><br>
+                        • <b>최종 전투 치명타</b> : 치확 <span style="color:#cdd6f4;">${baseStats.cr.toFixed(1)}%</span> / 치피 <span style="color:#cdd6f4;">${baseStats.cd.toFixed(1)}%</span><br>
+                        <span style="font-size:0.85em; color:#f38ba8; margin-left:15px;">※ 특성 치피 전환 (초과 치확): <b>+${baseStats.converted_cd.toFixed(1)}%</b></span>
+                    </div>
+                    
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cba6f7;">
+                        <strong style="color: #f9e2af;">📈 현재 세팅에서 부옵션 1줄 추가 시 딜 상승률</strong><br>
+                        <span style="font-size: 0.8em; color:#bac2de;">(현재 스펙 대비 최종 기대 데미지 효율 비교)</span><br>
+                        
+                        <div class="eff-bar"><span class="eff-label">🏃 속도 (+2.3)</span> <span class="eff-val" style="color:${spd_color};">${eff_spd > 0 ? '+' + eff_spd.toFixed(2) + '%' : '한도 캡 초과 (0%)'}</span></div>
+                        <div class="eff-bar"><span class="eff-label">💥 치피 (+5.8%)</span> <span class="eff-val" style="color:${cd_color};">+${eff_cd.toFixed(2)}%</span></div>
+                    </div>
+                </div>
+            `;
         }
     </script>
 </body>
